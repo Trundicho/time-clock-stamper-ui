@@ -1,10 +1,14 @@
 package de.trundicho.timeclockstamperui;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -27,7 +31,6 @@ public class MainView extends VerticalLayout {
         Label workedToadyLabel = new Label();
         workedTodayHorizontalLayout.add(workedTodayButton, workedToadyLabel);
 
-
         Label stampStateButton = new Label("State");
         HorizontalLayout stampStateHorizontalLayout = new HorizontalLayout();
         Label stampStateLabel = new Label();
@@ -38,22 +41,30 @@ public class MainView extends VerticalLayout {
         Label overtimeMonthLabel = new Label();
         overtimeMonthLayout.add(overtimeMonthButton, overtimeMonthLabel);
 
+        Button updateUiButton = new Button("Update ui");
+
         this.add(stampInOrOutHorizontalLayout);
         this.add(stampStateHorizontalLayout);
         this.add(workedTodayHorizontalLayout);
         this.add(overtimeMonthLayout);
+        this.add(updateUiButton);
 
         //------------------ Initialize -----------------
-        updateUi( timeClockStamperWsClient, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
+        updateUi(timeClockStamperWsClient, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
 
         //------------------ LISTENERS -----------------
         stampInOrOutButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
             System.out.println(timeClockStamperWsClient.stampInOrOut());
-            updateUi( timeClockStamperWsClient, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
+            updateUi(timeClockStamperWsClient, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
         });
+
+        updateUiButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
+            updateUi(timeClockStamperWsClient, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
+        });
+
     }
 
-    private void updateUi( TimeClockStamperWsClient timeClockStamperWsClient, Label workedToadyLabel, Label stampStateLabel,
+    private void updateUi(TimeClockStamperWsClient timeClockStamperWsClient, Label workedToadyLabel, Label stampStateLabel,
             Label overtimeMonthLabel) {
         String hoursWorkedToday = timeClockStamperWsClient.getHoursWorkedToday();
         workedToadyLabel.setText(hoursWorkedToday);

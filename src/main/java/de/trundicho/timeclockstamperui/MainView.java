@@ -88,6 +88,8 @@ public class MainView extends VerticalLayout {
         if (year!= null && month !=null)  {
             String overtimeMonth = timeClockStamperWsClient.getOvertimeMonth(year, month);
             overtimeMonthLabel.setText(overtimeMonth);
+        } else {
+            overtimeMonthLabel.setText("");
         }
     }
 

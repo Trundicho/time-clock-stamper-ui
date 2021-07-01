@@ -12,6 +12,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.router.Route;
 
 @Route
@@ -36,41 +37,65 @@ public class MainView extends VerticalLayout {
         stampStateHorizontalLayout.add(stampStateButton, stampStateLabel);
 
         Label overtimeMonthButton = new Label("Overtime month");
-        HorizontalLayout overtimeMonthLayout = new HorizontalLayout();
-        Label overtimeMonthLabel = new Label();
-        overtimeMonthLayout.add(overtimeMonthButton, overtimeMonthLabel);
+        HorizontalLayout overtimeCurrentMonthLayout = new HorizontalLayout();
+        Label overtimeCurrentMonthLabel = new Label();
+        overtimeCurrentMonthLayout.add(overtimeMonthButton, overtimeCurrentMonthLabel);
 
         Button updateUiButton = new Button("Update ui");
+
+        IntegerField yearField = new IntegerField();
+        IntegerField monthField = new IntegerField();
+        yearField.setHelperText("Year");
+        monthField.setHelperText("Month");
+        HorizontalLayout overtimePerMonthLayout = new HorizontalLayout();
+        overtimePerMonthLayout.add(yearField);
+        overtimePerMonthLayout.add(monthField);
+        Label overtimeMonthLabel = new Label();
+        overtimePerMonthLayout.add(new Label("Overtime:"), overtimeMonthLabel);
 
         this.add(stampInOrOutHorizontalLayout);
         this.add(stampStateHorizontalLayout);
         this.add(workedTodayHorizontalLayout);
-        this.add(overtimeMonthLayout);
+        this.add(overtimeCurrentMonthLayout);
+
+        this.add(overtimePerMonthLayout);
         this.add(updateUiButton);
 
         //------------------ Initialize -----------------
         ClockTimeResponse currentStampState = timeClockStamperWsClient.getCurrentStampState();
-        updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
+        updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
+        updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
 
         //------------------ LISTENERS -----------------
         stampInOrOutButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
             ClockTimeResponse clockTimeResponse = timeClockStamperWsClient.stampInOrOut();
-            updateUi(clockTimeResponse, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
+            updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
+            updateUi(clockTimeResponse, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
         });
 
         updateUiButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
             ClockTimeResponse clockTimeResponse = timeClockStamperWsClient.getCurrentStampState();
-            updateUi(clockTimeResponse, workedToadyLabel, stampStateLabel, overtimeMonthLabel);
+            updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
+            updateUi(clockTimeResponse, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
         });
 
     }
 
-    private void updateUi(ClockTimeResponse clockTimeResponse, Label workedToadyLabel, Label stampStateLabel,
+    private void updateOvertimeMonth(TimeClockStamperWsClient timeClockStamperWsClient, IntegerField yearField, IntegerField monthField,
             Label overtimeMonthLabel) {
+        Integer year = yearField.getValue();
+        Integer month = monthField.getValue();
+        if (year!= null && month !=null)  {
+            String overtimeMonth = timeClockStamperWsClient.getOvertimeMonth(year, month);
+            overtimeMonthLabel.setText(overtimeMonth);
+        }
+    }
+
+    private void updateUi(ClockTimeResponse clockTimeResponse, Label workedToadyLabel, Label stampStateLabel, Label overtimeMonthLabel) {
         workedToadyLabel.setText(clockTimeResponse.getHoursWorkedToday());
         stampStateLabel.setText(clockTimeResponse.getCurrentState().name());
-        String overtimeMonth = clockTimeResponse.getOvertimeMonth();
-        overtimeMonthLabel.setText(overtimeMonth);
+        String overtimeCurrentMonth = clockTimeResponse.getOvertimeMonth();
+        overtimeMonthLabel.setText(overtimeCurrentMonth);
     }
 
 }

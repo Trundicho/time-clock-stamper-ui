@@ -23,4 +23,8 @@ public class TimeClockStamperWsClient {
         return restTemplate.getForObject(stampUrl + "/stamp/state", ClockTimeResponse.class);
     }
 
+    public String getOvertimeMonth(Integer year, Integer month) {
+        return restTemplate.getForObject(String.format(stampUrl + "/stamp/state/%s/%s", year, month), String.class);
+    }
+
 }

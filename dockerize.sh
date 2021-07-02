@@ -2,7 +2,7 @@
 image=time-clock-stamper-ui
 version=1.2
 network=mynetwork
-hostport=8081
+hostport=8082
 sudo docker login -u trundicho
 sudo docker build -t $image:$version .
 sudo docker tag $image:$version trundicho/$image:$version

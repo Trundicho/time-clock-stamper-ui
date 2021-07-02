@@ -36,7 +36,7 @@ public class MainView extends VerticalLayout {
         Label stampStateLabel = new Label();
         stampStateHorizontalLayout.add(stampStateButton, stampStateLabel);
 
-        Label overtimeMonthButton = new Label("Overtime month");
+        Label overtimeMonthButton = new Label("Overtime current month");
         HorizontalLayout overtimeCurrentMonthLayout = new HorizontalLayout();
         Label overtimeCurrentMonthLabel = new Label();
         overtimeCurrentMonthLayout.add(overtimeMonthButton, overtimeCurrentMonthLabel);
@@ -50,8 +50,7 @@ public class MainView extends VerticalLayout {
         HorizontalLayout overtimePerMonthLayout = new HorizontalLayout();
         overtimePerMonthLayout.add(yearField);
         overtimePerMonthLayout.add(monthField);
-        Label overtimeMonthLabel = new Label();
-        overtimePerMonthLayout.add(new Label("Overtime:"), overtimeMonthLabel);
+
 
         this.add(stampInOrOutHorizontalLayout);
         this.add(stampStateHorizontalLayout);
@@ -59,6 +58,8 @@ public class MainView extends VerticalLayout {
         this.add(overtimeCurrentMonthLayout);
 
         this.add(overtimePerMonthLayout);
+        Label overtimeMonthLabel = new Label();
+        this.add(new Label("Overtime:"), overtimeMonthLabel);
         this.add(updateUiButton);
 
         //------------------ Initialize -----------------

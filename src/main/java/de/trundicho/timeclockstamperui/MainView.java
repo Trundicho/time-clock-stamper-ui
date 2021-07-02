@@ -59,7 +59,7 @@ public class MainView extends VerticalLayout {
 
         this.add(overtimePerMonthLayout);
         Label overtimeMonthLabel = new Label();
-        this.add(new Label("Overtime:"), overtimeMonthLabel);
+        this.add(new HorizontalLayout(new Label("Overtime:"), overtimeMonthLabel));
         this.add(updateUiButton);
 
         //------------------ Initialize -----------------

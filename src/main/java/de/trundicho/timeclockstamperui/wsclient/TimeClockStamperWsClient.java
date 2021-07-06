@@ -1,6 +1,11 @@
 package de.trundicho.timeclockstamperui.wsclient;
 
+import java.time.LocalTime;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,4 +32,10 @@ public class TimeClockStamperWsClient {
         return restTemplate.getForObject(String.format(stampUrl + "/stamp/state/%s/%s", year, month), String.class);
     }
 
+    public ClockTimeResponse stamp(LocalTime time) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<LocalTime> httpEntity = new HttpEntity<>(time, headers);
+        return restTemplate.postForObject(stampUrl + "/stamp/time", httpEntity, ClockTimeResponse.class);
+    }
 }

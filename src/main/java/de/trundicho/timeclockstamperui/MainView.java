@@ -19,6 +19,7 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.timepicker.TimePicker;
 import com.vaadin.flow.router.Route;
 
@@ -33,7 +34,7 @@ public class MainView extends VerticalLayout {
     public MainView(TimeClockStamperWsClient timeClockStamperWsClient) {
         Button stampInOrOutButton = new Button();
         stampInOrOutButton.setSizeFull();
-        stampInOrOutButton.getStyle().set("width", "300px").set("height", "200px");
+        stampInOrOutButton.addClassName("timeclockbutton");
         HorizontalLayout stampInOrOutHorizontalLayout = new HorizontalLayout();
         stampInOrOutHorizontalLayout.add(stampInOrOutButton);
 
@@ -75,21 +76,23 @@ public class MainView extends VerticalLayout {
         timePicker.setStep(Duration.ofMinutes(15));
         Button addClockTimeButton = new Button("Add clock time");
         this.add(new HorizontalLayout(timePicker, addClockTimeButton));
-
+        TextArea textArea = new TextArea();
+        textArea.setWidth("370px");
+        this.add(textArea);
         //------------------ Initialize -----------------
         ClockTimeResponse currentStampState = timeClockStamperWsClient.getCurrentStampState();
         updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField,
-                monthField, overtimeMonthLabel, currentStampState);
+                monthField, overtimeMonthLabel, currentStampState, textArea);
 
         //------------------ LISTENERS -----------------
         stampInOrOutButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
             updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField,
-                    monthField, overtimeMonthLabel, timeClockStamperWsClient.stampInOrOut());
+                    monthField, overtimeMonthLabel, timeClockStamperWsClient.stampInOrOut(), textArea);
         });
 
         updateUiButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
             updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField,
-                    monthField, overtimeMonthLabel, timeClockStamperWsClient.getCurrentStampState());
+                    monthField, overtimeMonthLabel, timeClockStamperWsClient.getCurrentStampState(), textArea);
         });
 
         UI current = UI.getCurrent();
@@ -100,7 +103,7 @@ public class MainView extends VerticalLayout {
             public void onComponentEvent(ComponentEvent componentEvent) {
                 ClockTimeResponse currentStampState = timeClockStamperWsClient.getCurrentStampState();
                 updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel,
-                        yearField, monthField, overtimeMonthLabel, currentStampState);
+                        yearField, monthField, overtimeMonthLabel, currentStampState, textArea);
             }
         });
         addClockTimeButton.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
@@ -111,7 +114,7 @@ public class MainView extends VerticalLayout {
                 if (value != null) {
                     ClockTimeResponse currentStampState = timeClockStamperWsClient.stamp(value);
                     updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel,
-                            yearField, monthField, overtimeMonthLabel, currentStampState);
+                            yearField, monthField, overtimeMonthLabel, currentStampState, textArea);
                 }
             }
         });
@@ -119,10 +122,11 @@ public class MainView extends VerticalLayout {
 
     private void updateUi(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton, Label workedToadyLabel,
             Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
-            Label overtimeMonthLabel, ClockTimeResponse currentStampState) {
+            Label overtimeMonthLabel, ClockTimeResponse currentStampState, TextArea textArea) {
         stampInOrOutButton.setText(ClockType.CLOCK_IN.equals(currentStampState.getCurrentState()) ? CLOCK_OUT : CLOCK_IN);
         updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
         updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
+        textArea.setValue(currentStampState.getClockTimes().toString().replace("),", "),\n").replace("ClockTime(date=", ""));
     }
 
     private void updateOvertimeMonth(TimeClockStamperWsClient timeClockStamperWsClient, IntegerField yearField, IntegerField monthField,

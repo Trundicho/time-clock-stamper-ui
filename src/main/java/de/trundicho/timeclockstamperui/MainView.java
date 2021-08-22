@@ -1,8 +1,12 @@
 package de.trundicho.timeclockstamperui;
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -76,7 +80,7 @@ public class MainView extends VerticalLayout {
         timePicker.setStep(Duration.ofMinutes(15));
         Button addClockTimeButton = new Button("Add clock time");
         this.add(new HorizontalLayout(timePicker, addClockTimeButton));
-        Grid<ClockTime> grid = new Grid<>(ClockTime.class);
+        Grid<Time> grid = new Grid<>(Time.class);
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
         this.add(grid);
 
@@ -92,7 +96,7 @@ public class MainView extends VerticalLayout {
 
     private void registerListeners(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton, Label workedToadyLabel,
             Label stampStateLabel, Label overtimeCurrentMonthLabel, Button updateUiButton, IntegerField yearField, IntegerField monthField,
-            Label overtimeMonthLabel, TimePicker timePicker, Button addClockTimeButton, Grid<ClockTime> grid) {
+            Label overtimeMonthLabel, TimePicker timePicker, Button addClockTimeButton, Grid<Time> grid) {
         //------------------ LISTENERS -----------------
         stampInOrOutButton.addClickListener(
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> updateUi(timeClockStamperWsClient, stampInOrOutButton,
@@ -123,12 +127,16 @@ public class MainView extends VerticalLayout {
 
     private void updateUi(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton, Label workedToadyLabel,
             Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
-            Label overtimeMonthLabel, ClockTimeResponse currentStampState, Grid<ClockTime> grid) {
+            Label overtimeMonthLabel, ClockTimeResponse currentStampState, Grid<Time> grid) {
         stampInOrOutButton.setText(ClockType.CLOCK_IN.equals(currentStampState.getCurrentState()) ? CLOCK_OUT : CLOCK_IN);
         updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
         updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
         List<ClockTime> clockTimes = currentStampState.getClockTimes();
-        grid.setItems(clockTimes);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy - HH:mm:ss");
+        List<Time> timers = clockTimes.stream()
+                                      .map(c -> new Time().setTimeStamp(formatter.format(Date.from(c.getDate().toInstant(ZoneOffset.UTC)))))
+                                      .collect(Collectors.toList());
+        grid.setItems(timers);
     }
 
     private void updateOvertimeMonth(TimeClockStamperWsClient timeClockStamperWsClient, IntegerField yearField, IntegerField monthField,

@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ public class MainView extends VerticalLayout {
     private static final String CLOCK_IN = "Clock in";
     private static final String CLOCK_OUT = "Clock out";
     private static final int UI_POLL_INTERVAL = 3000;
+    private static final String ZONE_ID = "Europe/Berlin";
 
     @Autowired
     public MainView(TimeClockStamperWsClient timeClockStamperWsClient) {
@@ -128,9 +130,13 @@ public class MainView extends VerticalLayout {
         updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
         updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
         List<ClockTime> clockTimes = currentStampState.getClockTimes();
+        LocalDateTime now = LocalDateTime.now();
+        ZoneId zone = ZoneId.of(ZONE_ID);
+        ZoneOffset zoneOffSet = zone.getRules().getOffset(now);
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy - HH:mm:ss");
         List<Time> timers = clockTimes.stream()
-                                      .map(c -> new Time().setTimeStamp(formatter.format(Date.from(c.getDate().toInstant(ZoneOffset.UTC)))))
+                                      .map(c -> new Time().setTimeStamp(
+                                              formatter.format(Date.from(c.getDate().toInstant(zoneOffSet)))))
                                       .collect(Collectors.toList());
         grid.setItems(timers);
     }

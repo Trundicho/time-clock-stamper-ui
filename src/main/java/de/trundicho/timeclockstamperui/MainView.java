@@ -104,6 +104,7 @@ public class MainView extends VerticalLayout {
                         timeClockStamperWsClient.stampInOrOut(), grid));
 
         UI current = UI.getCurrent();
+        current.getPage().setTitle("Time Clock");
         current.setPollInterval(UI_POLL_INTERVAL);
         current.addPollListener(componentEvent -> {
             ClockTimeResponse currentStampState12 = timeClockStamperWsClient.getCurrentStampState();

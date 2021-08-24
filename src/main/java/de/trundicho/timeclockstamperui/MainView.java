@@ -3,6 +3,7 @@ package de.trundicho.timeclockstamperui;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.timepicker.TimePicker;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 
@@ -34,6 +36,7 @@ public class MainView extends VerticalLayout {
 
     private static final String CLOCK_IN = "Clock in";
     private static final String CLOCK_OUT = "Clock out";
+    private static final int UI_POLL_INTERVAL = 3000;
 
     @Autowired
     public MainView(TimeClockStamperWsClient timeClockStamperWsClient) {
@@ -57,12 +60,10 @@ public class MainView extends VerticalLayout {
         Label overtimeCurrentMonthLabel = new Label();
         overtimeCurrentMonthLayout.add(overtimeMonthButton, overtimeCurrentMonthLabel);
 
-        Button updateUiButton = new Button("Update ui");
-
-        IntegerField yearField = new IntegerField();
-        IntegerField monthField = new IntegerField();
-        yearField.setHelperText("Year");
-        monthField.setHelperText("Month");
+        IntegerField yearField = createIntegerField("Year");
+        IntegerField monthField = createIntegerField("Month");
+        yearField.setValue(LocalDateTime.now().getYear());
+        monthField.setValue(LocalDateTime.now().getMonth().getValue());
         HorizontalLayout overtimePerMonthLayout = new HorizontalLayout();
         overtimePerMonthLayout.add(yearField);
         overtimePerMonthLayout.add(monthField);
@@ -75,7 +76,6 @@ public class MainView extends VerticalLayout {
         this.add(overtimePerMonthLayout);
         Label overtimeMonthLabel = new Label();
         this.add(new HorizontalLayout(new Label("Overtime:"), overtimeMonthLabel));
-        this.add(updateUiButton);
         TimePicker timePicker = new TimePicker();
         timePicker.setStep(Duration.ofMinutes(15));
         Button addClockTimeButton = new Button("Add clock time");
@@ -91,11 +91,11 @@ public class MainView extends VerticalLayout {
                 monthField, overtimeMonthLabel, currentStampState, grid);
 
         registerListeners(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel,
-                updateUiButton, yearField, monthField, overtimeMonthLabel, timePicker, addClockTimeButton, grid);
+                yearField, monthField, overtimeMonthLabel, timePicker, addClockTimeButton, grid);
     }
 
     private void registerListeners(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton, Label workedToadyLabel,
-            Label stampStateLabel, Label overtimeCurrentMonthLabel, Button updateUiButton, IntegerField yearField, IntegerField monthField,
+            Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
             Label overtimeMonthLabel, TimePicker timePicker, Button addClockTimeButton, Grid<Time> grid) {
         //------------------ LISTENERS -----------------
         stampInOrOutButton.addClickListener(
@@ -103,13 +103,8 @@ public class MainView extends VerticalLayout {
                         workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField, monthField, overtimeMonthLabel,
                         timeClockStamperWsClient.stampInOrOut(), grid));
 
-        updateUiButton.addClickListener(
-                (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> updateUi(timeClockStamperWsClient, stampInOrOutButton,
-                        workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField, monthField, overtimeMonthLabel,
-                        timeClockStamperWsClient.getCurrentStampState(), grid));
-
         UI current = UI.getCurrent();
-        current.setPollInterval(5000);
+        current.setPollInterval(UI_POLL_INTERVAL);
         current.addPollListener(componentEvent -> {
             ClockTimeResponse currentStampState12 = timeClockStamperWsClient.getCurrentStampState();
             updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField,
@@ -158,4 +153,10 @@ public class MainView extends VerticalLayout {
         overtimeMonthLabel.setText(overtimeCurrentMonth);
     }
 
+    private IntegerField createIntegerField(String name) {
+        IntegerField field = new IntegerField();
+        field.setValueChangeMode(ValueChangeMode.EAGER);
+        field.setHelperText(name);
+        return field;
+    }
 }

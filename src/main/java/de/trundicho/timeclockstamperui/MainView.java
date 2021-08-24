@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import de.trundicho.timeclockstamperui.wsclient.ClockTime;
 import de.trundicho.timeclockstamperui.wsclient.ClockTimeResponse;
@@ -38,7 +39,8 @@ public class MainView extends VerticalLayout {
     private static final String CLOCK_IN = "Clock in";
     private static final String CLOCK_OUT = "Clock out";
     private static final int UI_POLL_INTERVAL = 3000;
-    private static final String ZONE_ID = "Europe/Berlin";
+    @Value( "${time.zoneId}" )
+    private String zoneId = "Europe/Berlin";
 
     @Autowired
     public MainView(TimeClockStamperWsClient timeClockStamperWsClient) {
@@ -131,7 +133,7 @@ public class MainView extends VerticalLayout {
         updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
         List<ClockTime> clockTimes = currentStampState.getClockTimes();
         LocalDateTime now = LocalDateTime.now();
-        ZoneId zone = ZoneId.of(ZONE_ID);
+        ZoneId zone = ZoneId.of(zoneId);
         ZoneOffset zoneOffSet = zone.getRules().getOffset(now);
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy - HH:mm:ss");
         List<Time> timers = clockTimes.stream()

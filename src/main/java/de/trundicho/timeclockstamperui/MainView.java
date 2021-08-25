@@ -23,6 +23,7 @@ import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -39,12 +40,13 @@ public class MainView extends VerticalLayout {
     private static final String CLOCK_IN = "Clock in";
     private static final String CLOCK_OUT = "Clock out";
     private static final int UI_POLL_INTERVAL = 3000;
-    @Value( "${time.zoneId}" )
+    @Value("${time.zoneId}")
     private String zoneId = "Europe/Berlin";
 
     @Autowired
     public MainView(TimeClockStamperWsClient timeClockStamperWsClient) {
         Button stampInOrOutButton = new Button();
+        stampInOrOutButton.setIcon(new Image("/button-a.jpg", "StampButton"));
         stampInOrOutButton.getClassNames().add("timeclockbutton");
         HorizontalLayout stampInOrOutHorizontalLayout = new HorizontalLayout();
         stampInOrOutHorizontalLayout.add(stampInOrOutButton);
@@ -129,6 +131,9 @@ public class MainView extends VerticalLayout {
             Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
             Label overtimeMonthLabel, ClockTimeResponse currentStampState, Grid<Time> grid) {
         stampInOrOutButton.setText(ClockType.CLOCK_IN.equals(currentStampState.getCurrentState()) ? CLOCK_OUT : CLOCK_IN);
+        stampInOrOutButton.setIcon(ClockType.CLOCK_IN.equals(currentStampState.getCurrentState()) ?
+                new Image("/button-b.jpg", "StampButtonClockedOut") :
+                new Image("/button-a.jpg", "StampButtonClockedIn"));
         updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
         updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
         List<ClockTime> clockTimes = currentStampState.getClockTimes();
@@ -137,8 +142,7 @@ public class MainView extends VerticalLayout {
         ZoneOffset zoneOffSet = zone.getRules().getOffset(now);
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy - HH:mm:ss");
         List<Time> timers = clockTimes.stream()
-                                      .map(c -> new Time().setTimeStamp(
-                                              formatter.format(Date.from(c.getDate().toInstant(zoneOffSet)))))
+                                      .map(c -> new Time().setTimeStamp(formatter.format(Date.from(c.getDate().toInstant(zoneOffSet)))))
                                       .collect(Collectors.toList());
         grid.setItems(timers);
     }

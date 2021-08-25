@@ -1,11 +1,9 @@
 package de.trundicho.timeclockstamperui;
 
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -142,9 +140,8 @@ public class MainView extends VerticalLayout {
     }
 
     private Time getTime(ClockTime c) {
-        ZoneId zone = ZoneId.of(zoneId);
-        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy - HH:mm:ss");
-        return new Time().setTimeStamp(formatter.format(Date.from(c.getDate().atZone(zone).toInstant())));
+        String format = new DateTimeFormatterBuilder().appendPattern("dd.MM.yy - HH:mm:ss").toFormatter().format(c.getDate());
+        return new Time().setTimeStamp(format);
     }
 
     private void updateOvertimeMonth(TimeClockStamperWsClient timeClockStamperWsClient, IntegerField yearField, IntegerField monthField,

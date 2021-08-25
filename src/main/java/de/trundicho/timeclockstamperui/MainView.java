@@ -6,7 +6,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -137,14 +136,15 @@ public class MainView extends VerticalLayout {
         updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
         updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
         List<ClockTime> clockTimes = currentStampState.getClockTimes();
-        LocalDateTime now = LocalDateTime.now();
-        ZoneId zone = ZoneId.of(zoneId);
-        ZoneOffset zoneOffSet = zone.getRules().getOffset(now);
-        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy - HH:mm:ss");
-        List<Time> timers = clockTimes.stream()
-                                      .map(c -> new Time().setTimeStamp(formatter.format(Date.from(c.getDate().toInstant(zoneOffSet)))))
-                                      .collect(Collectors.toList());
+
+        List<Time> timers = clockTimes.stream().map(this::getTime).collect(Collectors.toList());
         grid.setItems(timers);
+    }
+
+    private Time getTime(ClockTime c) {
+        ZoneId zone = ZoneId.of(zoneId);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy - HH:mm:ss");
+        return new Time().setTimeStamp(formatter.format(Date.from(c.getDate().atZone(zone).toInstant())));
     }
 
     private void updateOvertimeMonth(TimeClockStamperWsClient timeClockStamperWsClient, IntegerField yearField, IntegerField monthField,

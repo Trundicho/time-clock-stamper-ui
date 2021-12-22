@@ -21,6 +21,7 @@ import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -85,22 +86,8 @@ public class MainView extends VerticalLayout {
         timePicker.setStep(Duration.ofMinutes(15));
         Button addClockTimeButton = new Button("Add clock time");
         this.add(new HorizontalLayout(timePicker, addClockTimeButton));
-        Grid<ClockTime> grid = new Grid<>(ClockTime.class);
-        grid.removeAllColumns();
-        grid.addColumn(c-> getTime(c).getTimeStamp()).setHeader("Clock time");
-        grid.addComponentColumn((ValueProvider<ClockTime, Component>) time -> {
-            Button deleteButton = new Button("X");
-            deleteButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-                ClockTimeDto currentStampState = timeClockStamperWsClient.getCurrentStampState();
-                List<ClockTime> clockTimes = new ArrayList<>(currentStampState.getClockTimes());
-                clockTimes.remove(time);
-                ClockTimeDto clockTimeDto = timeClockStamperWsClient.setTimeStampsToday(clockTimes);
-                updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel,
-                        yearField, monthField, overtimeMonthLabel, clockTimeDto, grid);
-            });
-            return deleteButton;
-        }).setHeader("Delete");
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+        Grid<ClockTime> grid = createClockTimeGrid(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel,
+                overtimeCurrentMonthLabel, yearField, monthField, overtimeMonthLabel);
         this.add(grid);
 
         //------------------ Initialize -----------------
@@ -183,5 +170,28 @@ public class MainView extends VerticalLayout {
         field.setValueChangeMode(ValueChangeMode.EAGER);
         field.setHelperText(name);
         return field;
+    }
+
+    private Grid<ClockTime> createClockTimeGrid(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton,
+            Label workedToadyLabel, Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
+            Label overtimeMonthLabel) {
+        Grid<ClockTime> grid = new Grid<>(ClockTime.class);
+        grid.removeAllColumns();
+        grid.addColumn(c-> getTime(c).getTimeStamp()).setHeader("Clock time");
+        grid.addComponentColumn((ValueProvider<ClockTime, Component>) time -> {
+            Button deleteButton = new Button("X");
+            deleteButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
+                ClockTimeDto currentStampState = timeClockStamperWsClient.getCurrentStampState();
+                List<ClockTime> clockTimes = new ArrayList<>(currentStampState.getClockTimes());
+                clockTimes.remove(time);
+                ClockTimeDto clockTimeDto = timeClockStamperWsClient.setTimeStampsToday(clockTimes);
+                updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel,
+                        yearField, monthField, overtimeMonthLabel, clockTimeDto, grid);
+            });
+            return deleteButton;
+        }).setHeader("Delete");
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        return grid;
     }
 }

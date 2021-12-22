@@ -2,14 +2,14 @@ package de.trundicho.timeclockstamperui.wsclient;
 
 import java.util.List;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-@Getter
+@Data
 @ToString
 @Accessors(chain = true)
-public class ClockTimeResponse {
+public class ClockTimeDto {
 
     private ClockType currentState;
     private String hoursWorkedToday;

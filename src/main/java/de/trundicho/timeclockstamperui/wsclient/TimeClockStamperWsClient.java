@@ -21,28 +21,28 @@ public class TimeClockStamperWsClient {
         restTemplate = new RestTemplate();
     }
 
-    public ClockTimeDto stampInOrOut() {
-        return restTemplate.postForObject(stampUrl + "/stamp/inOrOut", null, ClockTimeDto.class);
+    public ClockTimeDataDto stampInOrOut() {
+        return restTemplate.postForObject(stampUrl + "/stamp/inOrOut", null, ClockTimeDataDto.class);
     }
 
-    public ClockTimeDto getCurrentStampState() {
-        return restTemplate.getForObject(stampUrl + "/stamp/state", ClockTimeDto.class);
+    public ClockTimeDataDto getCurrentStampState() {
+        return restTemplate.getForObject(stampUrl + "/stamp/state", ClockTimeDataDto.class);
     }
 
     public String getOvertimeMonth(Integer year, Integer month) {
         return restTemplate.getForObject(String.format(stampUrl + "/stamp/state/%s/%s", year, month), String.class);
     }
 
-    public ClockTimeDto stamp(LocalTime time) {
+    public ClockTimeDataDto stamp(LocalTime time) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<LocalTime> httpEntity = new HttpEntity<>(time, headers);
-        return restTemplate.postForObject(stampUrl + "/stamp/time", httpEntity, ClockTimeDto.class);
+        return restTemplate.postForObject(stampUrl + "/stamp/time", httpEntity, ClockTimeDataDto.class);
     }
 
-    public ClockTimeDto setTimeStampsToday(List<ClockTime> clockTimes) {
-        ClockTimeDto timeDto = new ClockTimeDto();
-        timeDto.setClockTimes(clockTimes);
-        return restTemplate.postForObject(stampUrl + "/stamp/today", timeDto, ClockTimeDto.class);
+    public ClockTimeDataDto setTimeStampsToday(List<ClockTimeDto> clockTimeDtos) {
+        ClockTimeDataDto timeDto = new ClockTimeDataDto();
+        timeDto.setClockTimes(clockTimeDtos);
+        return restTemplate.postForObject(stampUrl + "/stamp/today", timeDto, ClockTimeDataDto.class);
     }
 }

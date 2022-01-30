@@ -10,8 +10,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import de.trundicho.timeclockstamperui.wsclient.ClockTime;
 import de.trundicho.timeclockstamperui.wsclient.ClockTimeDto;
+import de.trundicho.timeclockstamperui.wsclient.ClockTimeDataDto;
 import de.trundicho.timeclockstamperui.wsclient.ClockType;
 import de.trundicho.timeclockstamperui.wsclient.TimeClockStamperWsClient;
 
@@ -86,12 +86,12 @@ public class MainView extends VerticalLayout {
         timePicker.setStep(Duration.ofMinutes(15));
         Button addClockTimeButton = new Button("Add clock time");
         this.add(new HorizontalLayout(timePicker, addClockTimeButton));
-        Grid<ClockTime> grid = createClockTimeGrid(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel,
+        Grid<ClockTimeDto> grid = createClockTimeGrid(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel,
                 overtimeCurrentMonthLabel, yearField, monthField, overtimeMonthLabel);
         this.add(grid);
 
         //------------------ Initialize -----------------
-        ClockTimeDto currentStampState = timeClockStamperWsClient.getCurrentStampState();
+        ClockTimeDataDto currentStampState = timeClockStamperWsClient.getCurrentStampState();
 
         updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField,
                 monthField, overtimeMonthLabel, currentStampState, grid);
@@ -102,7 +102,7 @@ public class MainView extends VerticalLayout {
 
     private void registerListeners(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton, Label workedToadyLabel,
             Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
-            Label overtimeMonthLabel, TimePicker timePicker, Button addClockTimeButton, Grid<ClockTime> grid) {
+            Label overtimeMonthLabel, TimePicker timePicker, Button addClockTimeButton, Grid<ClockTimeDto> grid) {
         //------------------ LISTENERS -----------------
         stampInOrOutButton.addClickListener(
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> updateUi(timeClockStamperWsClient, stampInOrOutButton,
@@ -113,14 +113,14 @@ public class MainView extends VerticalLayout {
         current.getPage().setTitle("Time Clock");
         current.setPollInterval(UI_POLL_INTERVAL);
         current.addPollListener(componentEvent -> {
-            ClockTimeDto currentStampState12 = timeClockStamperWsClient.getCurrentStampState();
+            ClockTimeDataDto currentStampState12 = timeClockStamperWsClient.getCurrentStampState();
             updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel, yearField,
                     monthField, overtimeMonthLabel, currentStampState12, grid);
         });
         addClockTimeButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
             LocalTime value = timePicker.getValue();
             if (value != null) {
-                ClockTimeDto currentStampState1 = timeClockStamperWsClient.stamp(value);
+                ClockTimeDataDto currentStampState1 = timeClockStamperWsClient.stamp(value);
                 updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel,
                         yearField, monthField, overtimeMonthLabel, currentStampState1, grid);
             }
@@ -129,19 +129,19 @@ public class MainView extends VerticalLayout {
 
     private void updateUi(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton, Label workedToadyLabel,
             Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
-            Label overtimeMonthLabel, ClockTimeDto currentStampState, Grid<ClockTime> grid) {
+            Label overtimeMonthLabel, ClockTimeDataDto currentStampState, Grid<ClockTimeDto> grid) {
         stampInOrOutButton.setText(ClockType.CLOCK_IN.equals(currentStampState.getCurrentState()) ? CLOCK_OUT : CLOCK_IN);
         stampInOrOutButton.setIcon(ClockType.CLOCK_IN.equals(currentStampState.getCurrentState()) ?
                 new Image("/button-b.jpg", "StampButtonClockedOut") :
                 new Image("/button-a.jpg", "StampButtonClockedIn"));
         updateOvertimeMonth(timeClockStamperWsClient, yearField, monthField, overtimeMonthLabel);
         updateUi(currentStampState, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel);
-        List<ClockTime> clockTimes = currentStampState.getClockTimes();
+        List<ClockTimeDto> clockTimeDtos = currentStampState.getClockTimes();
 
-        grid.setItems(clockTimes);
+        grid.setItems(clockTimeDtos);
     }
 
-    private Time getTime(ClockTime c) {
+    private Time getTime(ClockTimeDto c) {
         String format = new DateTimeFormatterBuilder().appendPattern("dd.MM.yy - HH:mm:ss").toFormatter().format(c.getDate());
         return new Time().setTimeStamp(format);
     }
@@ -158,10 +158,10 @@ public class MainView extends VerticalLayout {
         }
     }
 
-    private void updateUi(ClockTimeDto clockTimeDto, Label workedToadyLabel, Label stampStateLabel, Label overtimeMonthLabel) {
-        workedToadyLabel.setText(clockTimeDto.getHoursWorkedToday());
-        stampStateLabel.setText(clockTimeDto.getCurrentState().name());
-        String overtimeCurrentMonth = clockTimeDto.getOvertimeMonth();
+    private void updateUi(ClockTimeDataDto clockTimeDataDto, Label workedToadyLabel, Label stampStateLabel, Label overtimeMonthLabel) {
+        workedToadyLabel.setText(clockTimeDataDto.getHoursWorkedToday());
+        stampStateLabel.setText(clockTimeDataDto.getCurrentState().name());
+        String overtimeCurrentMonth = clockTimeDataDto.getOvertimeMonth();
         overtimeMonthLabel.setText(overtimeCurrentMonth);
     }
 
@@ -172,21 +172,21 @@ public class MainView extends VerticalLayout {
         return field;
     }
 
-    private Grid<ClockTime> createClockTimeGrid(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton,
+    private Grid<ClockTimeDto> createClockTimeGrid(TimeClockStamperWsClient timeClockStamperWsClient, Button stampInOrOutButton,
             Label workedToadyLabel, Label stampStateLabel, Label overtimeCurrentMonthLabel, IntegerField yearField, IntegerField monthField,
             Label overtimeMonthLabel) {
-        Grid<ClockTime> grid = new Grid<>(ClockTime.class);
+        Grid<ClockTimeDto> grid = new Grid<>(ClockTimeDto.class);
         grid.removeAllColumns();
         grid.addColumn(c-> getTime(c).getTimeStamp()).setHeader("Clock time");
-        grid.addComponentColumn((ValueProvider<ClockTime, Component>) time -> {
+        grid.addComponentColumn((ValueProvider<ClockTimeDto, Component>) time -> {
             Button deleteButton = new Button("X");
             deleteButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-                ClockTimeDto currentStampState = timeClockStamperWsClient.getCurrentStampState();
-                List<ClockTime> clockTimes = new ArrayList<>(currentStampState.getClockTimes());
-                clockTimes.remove(time);
-                ClockTimeDto clockTimeDto = timeClockStamperWsClient.setTimeStampsToday(clockTimes);
+                ClockTimeDataDto currentStampState = timeClockStamperWsClient.getCurrentStampState();
+                List<ClockTimeDto> clockTimeDtos = new ArrayList<>(currentStampState.getClockTimes());
+                clockTimeDtos.remove(time);
+                ClockTimeDataDto clockTimeDataDto = timeClockStamperWsClient.setTimeStampsToday(clockTimeDtos);
                 updateUi(timeClockStamperWsClient, stampInOrOutButton, workedToadyLabel, stampStateLabel, overtimeCurrentMonthLabel,
-                        yearField, monthField, overtimeMonthLabel, clockTimeDto, grid);
+                        yearField, monthField, overtimeMonthLabel, clockTimeDataDto, grid);
             });
             return deleteButton;
         }).setHeader("Delete");
